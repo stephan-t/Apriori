@@ -3,13 +3,13 @@ from itertools import combinations
 
 # Create transaction set
 T = pd.DataFrame({"items":
-                 [["beef", "chicken", "milk"],
-                  ["beef", "cheese"],
-                  ["cheese", "boots"],
-                  ["beef", "chicken", "cheese"],
-                  ["beef", "chicken", "clothes", "cheese", "milk"],
-                  ["chicken", "clothes", "milk"],
-                  ["chicken", "milk", "clothes"]]})
+                 [("beef", "chicken", "milk"),
+                  ("beef", "cheese"),
+                  ("cheese", "boots"),
+                  ("beef", "chicken", "cheese"),
+                  ("beef", "chicken", "clothes", "cheese", "milk"),
+                  ("chicken", "clothes", "milk"),
+                  ("chicken", "milk", "clothes")]})
 
 # Minimum support
 min_sup = .30
@@ -22,8 +22,8 @@ def initpass(T):
     # Count support of individual items
     for i in range(len(T)):
         for j in T['items'][i]:
-            if j in list(C1['items']):
-                C1['count'][list(C1['items']).index(j)] += 1
+            if j in tuple(C1['items']):
+                C1['count'][tuple(C1['items']).index(j)] += 1
             else:
                 C1 = C1.append(pd.Series([j, 1], index=['items', 'count']), ignore_index=True)
 
@@ -43,7 +43,7 @@ C2 = pd.DataFrame(columns=['items', 'count'])
 for i in range(len(F1)):
     for j in range(i+1, len(F1)):
         # Join two itemsets and add to candidates
-        C2 = C2.append(pd.Series([[F1['items'][i], F1['items'][j]], 0],
+        C2 = C2.append(pd.Series([(F1['items'][i], F1['items'][j]), 0],
                                  index=['items', 'count']), ignore_index=True)
 
 # Check if each candidate itemset is in transaction set
@@ -66,9 +66,11 @@ for i in range(len(F2)):
         # Find pairs that differ only by last item
         if (F2['items'][i][:-1] == F2['items'][j][:-1]) & (F2['items'][i][-1] != F2['items'][j][-1]):
             # Join two itemsets and add to candidates
-            C3 = C3.append(pd.Series([F2['items'][i] + [F2['items'][j][-1]], 0],
+            C3 = C3.append(pd.Series([F2['items'][i] + (F2['items'][j][-1],), 0],
                                      index=['items', 'count']), ignore_index=True)
 
             # Delete candidate if a subset is not in k-1 frequent itemset
             for k in range(len(C3)):
-                s = [list(i) for i in combinations(C3['items'][k], 2)]
+                s = tuple(combinations(C3['items'][k], 2))
+                set(s).issubset(tuple(F2['items']))
+
