@@ -2,16 +2,17 @@ import pandas as pd
 
 # Create transaction set
 T = pd.DataFrame({"items":
-                 [{"beef", "chicken", "milk"},
-                 {"beef", "cheese"},
-                 {"cheese", "boots"},
-                 {"beef", "chicken", "cheese"},
-                 {"beef", "chicken", "clothes", "cheese", "milk"},
-                 {"chicken", "clothes", "milk"},
-                 {"chicken", "milk", "clothes"}]})
+                 [["beef", "chicken", "milk"],
+                  ["beef", "cheese"],
+                  ["cheese", "boots"],
+                  ["beef", "chicken", "cheese"],
+                  ["beef", "chicken", "clothes", "cheese", "milk"],
+                  ["chicken", "clothes", "milk"],
+                  ["chicken", "milk", "clothes"]]})
 
 # Minimum support
 min_sup = .30
+
 
 # Initial pass function
 def initpass(T):
@@ -25,8 +26,34 @@ def initpass(T):
             else:
                 C1 = C1.append(pd.Series([j, 1], index=['items', 'count']), ignore_index=True)
 
-    C1 = C1.sort_values('items') # Sort items lexicographically
+    C1 = C1.sort_values('items')  # Sort items lexicographically
+    C1 = C1.reset_index(drop=True)
     return C1
 
-# First pass over T
-C1 = initpass(T)
+
+# Apriori algorithm
+C1 = initpass(T)  # First pass over T
+F1 = C1[C1['count']/len(T) >= min_sup]  # Determine frequent itemsets
+F1 = F1.reset_index(drop=True)
+
+# Candidate generation
+C2 = pd.DataFrame(columns=['items', 'count'])
+
+for i in range(len(F1)):
+    for j in range(i+1, len(F1)):
+        # Join two itemsets and add to candidates
+        C2 = C2.append(pd.Series([[F1['items'][i], F1['items'][j]], 0],
+                                 index=['items', 'count']), ignore_index=True)
+
+        # Delete candidate if a subset is not in k-1 frequent itemset       TODO
+
+# Check if each candidate itemset is in transaction set
+for i in range(len(T)):
+    for j in range(len(C2)):
+        if set(C2['items'][j]).issubset(T['items'][i]):
+            C2['count'][j] += 1
+
+
+# Determine frequent itemsets
+F2 = C2[C2['count']/len(T) >= min_sup]
+F2 = F2.reset_index(drop=True)
