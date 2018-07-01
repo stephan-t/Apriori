@@ -58,6 +58,7 @@ F2 = C2[C2['count']/len(T) >= min_sup]
 F2 = F2.reset_index(drop=True)
 
 
+
 # F3 Candidate generation
 C3 = pd.DataFrame(columns=['items', 'count'])
 
@@ -70,7 +71,17 @@ for i in range(len(F2)):
                                      index=['items', 'count']), ignore_index=True)
 
             # Delete candidate if a subset is not in k-1 frequent itemset
-            for k in range(len(C3)):
-                s = tuple(combinations(C3['items'][k], 2))
-                set(s).issubset(tuple(F2['items']))
+            s = tuple(combinations(C3['items'][len(C3)-1], 2))
+            if not set(s).issubset(tuple(F2['items'])):
+                C3 = C3.drop(C3.index[-1])
 
+# Check if each candidate itemset is in transaction set
+for i in range(len(T)):
+    for j in range(len(C3)):
+        if set(C3['items'][j]).issubset(T['items'][i]):
+            C3['count'][j] += 1
+
+
+# Determine frequent itemsets
+F3 = C3[C3['count']/len(T) >= min_sup]
+F3 = F3.reset_index(drop=True)
