@@ -1,23 +1,9 @@
-import pandas as pd
 from itertools import combinations
-
-# Create transaction dataset
-T = pd.DataFrame({"items":
-                  [("beef", "chicken", "milk"),
-                   ("beef", "cheese"),
-                   ("cheese", "boots"),
-                   ("beef", "chicken", "cheese"),
-                   ("beef", "chicken", "clothes", "cheese", "milk"),
-                   ("chicken", "clothes", "milk"),
-                   ("chicken", "milk", "clothes")]})
-
-# Minimum support
-min_sup = .30
+import pandas as pd
 
 
 # Initial pass function
 def init_pass(T):
-    global C
     C = {1: pd.DataFrame(columns=['items', 'count'])}
 
     # Count support of individual items
@@ -35,7 +21,7 @@ def init_pass(T):
 
 
 # Candidate generation function
-def candidate_gen(k):
+def candidate_gen(C, F, k):
     C[k] = pd.DataFrame(columns=['items', 'count'])
 
     for i in range(len(F[k - 1])):
@@ -55,16 +41,15 @@ def candidate_gen(k):
 
 
 # Apriori algorithm
-def apriori(T):
+def apriori(T, min_sup):
     C = init_pass(T)  # First pass over T
-    global F
     F = {1: C[1][C[1]['count'] / len(T) >= min_sup]}  # Determine frequent itemsets
     F[1] = F[1].reset_index(drop=True)
 
     # Subsequent passes over T
     k = 2
     while not F[k - 1].empty:
-        C = candidate_gen(k)
+        C = candidate_gen(C, F, k)
 
         # Check if each candidate itemset is in transaction dataset
         for i in range(len(T)):
@@ -77,8 +62,4 @@ def apriori(T):
         F[k] = F[k].reset_index(drop=True)
 
         k += 1
-
     return F
-
-
-apriori(T)
