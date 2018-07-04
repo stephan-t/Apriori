@@ -21,8 +21,8 @@ def init_pass(T):
 
 
 # Candidate generation function
-def candidate_gen(C, F, k):
-    C[k] = pd.DataFrame(columns=['items', 'count'])
+def candidate_gen(F, k):
+    C = {k: pd.DataFrame(columns=['items', 'count'])}
 
     for i in range(len(F[k - 1])):
         for j in range(i + 1, len(F[k - 1])):
@@ -49,13 +49,13 @@ def apriori(T, min_sup):
     # Subsequent passes over T
     k = 2
     while not F[k - 1].empty:
-        C = candidate_gen(C, F, k)
+        C = candidate_gen(F, k)
 
         # Check if each candidate itemset is in transaction dataset
         for i in range(len(T)):
             for j in range(len(C[k])):
                 if set(C[k]['items'][j]).issubset(T['items'][i]):
-                    C[k]['count'][j] += 1
+                    C[k]['count'][j] += 1  # Count support of candidate itemset
 
         # Determine frequent itemsets
         F[k] = C[k][C[k]['count'] / len(T) >= min_sup]
