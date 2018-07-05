@@ -1,7 +1,6 @@
 from itertools import combinations
 import pandas as pd
 
-
 # Initial pass function
 def init_pass(T):
     C = {1: pd.DataFrame(columns=['items', 'count'])}
@@ -22,21 +21,21 @@ def init_pass(T):
 
 # Candidate generation function
 def candidate_gen(F, k):
-    C = {k: pd.DataFrame(columns=['items', 'count'])}
+    C = {k + 1: pd.DataFrame(columns=['items'])}
 
-    for i in range(len(F[k - 1])):
-        for j in range(i + 1, len(F[k - 1])):
+    for i in range(len(F[k])):
+        for j in range(i + 1, len(F[k])):
             # Find pairs that differ only by last item
-            if (F[k - 1]['items'][i][:-1] == F[k - 1]['items'][j][:-1]) & \
-                    (F[k - 1]['items'][i][-1] != F[k - 1]['items'][j][-1]):
+            if (F[k]['items'][i][:-1] == F[k]['items'][j][:-1]) & \
+                    (F[k]['items'][i][-1] != F[k]['items'][j][-1]):
                 # Join two itemsets and add to candidates
-                C[k] = C[k].append(pd.Series([(F[k - 1]['items'][i]) + (F[k - 1]['items'][j][-1],), 0],
-                                             index=['items', 'count']), ignore_index=True)
+                C[k + 1] = C[k + 1].append(pd.Series([(F[k]['items'][i]) + (F[k]['items'][j][-1],)],
+                                             index=['items']), ignore_index=True)
 
                 # Delete candidate if a subset is not in k-1 frequent itemset
-                s = tuple(combinations(C[k]['items'][len(C[k]) - 1], len(C[k]['items'][0]) - 1))
-                if not set(s).issubset(tuple(F[k - 1]['items'])):
-                    C[k] = C[k].drop(C[k].index[-1])
+                s = tuple(combinations(C[k + 1]['items'][len(C[k + 1]) - 1], len(C[k + 1]['items'][0]) - 1))
+                if not set(s).issubset(tuple(F[k]['items'])):
+                    C[k + 1] = C[k + 1].drop(C[k + 1].index[-1])
     return C
 
 
@@ -49,13 +48,14 @@ def apriori(T, min_sup):
     # Subsequent passes over T
     k = 2
     while not F[k - 1].empty:
-        C = candidate_gen(F, k)
+        C = candidate_gen(F, k - 1)
 
         # Check if each candidate itemset is in transaction dataset
+        C[k]['count'] = 0
         for i in range(len(T)):
             for j in range(len(C[k])):
                 if set(C[k]['items'][j]).issubset(T['items'][i]):
-                    C[k]['count'][j] += 1  # Count support of candidate itemset
+                    C[k].loc[j, 'count'] += 1  # Count support of candidate itemset
 
         # Determine frequent itemsets
         F[k] = C[k][C[k]['count'] / len(T) >= min_sup]
