@@ -20,12 +20,14 @@ def rule_gen(T, F, min_conf):
                           ", conf = " + str(f[1]) + "/" + str(ant_cnt) + "]")
 
                     # Store 1-item consequents meeting minimum confidence
-                    if 'H' not in globals():
+                    if 'H' not in locals():
                         H = {1: pd.DataFrame(pd.Series((c,)), columns=['items'])}
                     else:
                         H[1] = H[1].append(pd.Series((c,), index=['items']), ignore_index=True)
 
                     rule_gen_all(T, F, f, H, 1, min_conf)  # Generate all rules from 1-item consequents
+
+        H[1].drop(H[1].index, inplace=True)  # Clear dataframe for next iteration
 
 
 # Generate all rules procedure
