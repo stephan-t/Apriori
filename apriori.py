@@ -1,6 +1,33 @@
 from itertools import combinations
 import pandas as pd
 
+
+# Apriori algorithm
+def apriori(T, min_sup):
+    C = init_pass(T)  # First pass over T
+    F = {1: C[1][C[1]['count'] / len(T) >= min_sup]}  # Determine frequent itemsets
+    F[1] = F[1].reset_index(drop=True)
+
+    # Subsequent passes over T
+    k = 2
+    while not F[k - 1].empty:
+        C = candidate_gen(F, k - 1)
+
+        # Check if each candidate itemset is in transaction dataset
+        C[k]['count'] = 0
+        for i in range(len(T)):
+            for j in range(len(C[k])):
+                if set(C[k]['items'][j]).issubset(T['items'][i]):
+                    C[k].loc[j, 'count'] += 1  # Count support of candidate itemset
+
+        # Determine frequent itemsets
+        F[k] = C[k][C[k]['count'] / len(T) >= min_sup]
+        F[k] = F[k].reset_index(drop=True)
+
+        k += 1
+    return F
+
+
 # Initial pass function
 def init_pass(T):
     C = {1: pd.DataFrame(columns=['items', 'count'])}
@@ -38,28 +65,3 @@ def candidate_gen(F, k):
                     C[k + 1] = C[k + 1].drop(C[k + 1].index[-1])
     return C
 
-
-# Apriori algorithm
-def apriori(T, min_sup):
-    C = init_pass(T)  # First pass over T
-    F = {1: C[1][C[1]['count'] / len(T) >= min_sup]}  # Determine frequent itemsets
-    F[1] = F[1].reset_index(drop=True)
-
-    # Subsequent passes over T
-    k = 2
-    while not F[k - 1].empty:
-        C = candidate_gen(F, k - 1)
-
-        # Check if each candidate itemset is in transaction dataset
-        C[k]['count'] = 0
-        for i in range(len(T)):
-            for j in range(len(C[k])):
-                if set(C[k]['items'][j]).issubset(T['items'][i]):
-                    C[k].loc[j, 'count'] += 1  # Count support of candidate itemset
-
-        # Determine frequent itemsets
-        F[k] = C[k][C[k]['count'] / len(T) >= min_sup]
-        F[k] = F[k].reset_index(drop=True)
-
-        k += 1
-    return F
