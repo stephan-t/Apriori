@@ -1,5 +1,6 @@
 from apriori import apriori
-from ast import literal_eval
+from rules import rule_gen
+from validate import validate_input
 import pandas as pd
 
 # Request filename from user
@@ -11,37 +12,20 @@ T = pd.read_csv(file)
 # Preprocess data
 T = T.iloc[:, [1]]
 for i in range(len(T)):
-    T.iloc[:, 0][i] = tuple(T.iloc[:, 0][i].replace(" ", "").split(','))
+    T.iloc[:, 0][i] = tuple(T.iloc[:, 0][i].replace(" ", "").split(","))
 
 # Request minimum support from user
-min_sup = input("Please enter a minimum support: ")
+min_sup = input("Please enter a minimum support between 0.0-1.0 or 1-" + str(len(T)) + ": ")
+min_sup = validate_input(min_sup, T)
 
-# Validate input
-while True:
-    try:
-        min_sup = literal_eval(min_sup)
-    except (ValueError, SyntaxError):
-        min_sup = input("Please enter a valid number: ")
-        continue
-
-    if min_sup <= 0:
-        min_sup = input("Please enter a positive number: ")
-        continue
-
-    if type(min_sup) == int:
-        if min_sup > len(T):
-            min_sup = input("Please enter a number less than or equal to " + str(len(T)) + ": ")
-            continue
-        else:
-            min_sup /= len(T)
-            break
-    elif type(min_sup) == float:
-        if min_sup > 1.0:
-            min_sup = input("Please enter a number less than or equal to 1.0: ")
-            continue
-        else:
-            break
+# Request minimum support from user
+min_conf = input("Please enter a minimum confidence between 0.0-1.0: ")
+min_conf = validate_input(min_conf)
 
 # Output all frequent itemsets
 F = apriori(T, min_sup)
-print("Frequent itemsets: \n", F)
+print("Frequent itemsets: \n", F, "\n")
+
+# Output all association rules
+print("Association rules:")
+rule_gen(T, F, min_conf)
