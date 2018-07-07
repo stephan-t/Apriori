@@ -27,7 +27,8 @@ def rule_gen(T, F, min_conf):
 
                     rule_gen_all(T, F, f, H, 1, min_conf)  # Generate all rules from 1-item consequents
 
-        H[1].drop(H[1].index, inplace=True)  # Clear dataframe for next iteration
+            if 'H' in locals():
+                del H  # Delete dataframe for next iteration
 
 
 # Generate all rules procedure
@@ -36,7 +37,7 @@ def rule_gen_all(T, F, f, H, m, min_conf):
         H = candidate_gen(H, m)  # Generate consquent supersets
 
         for h in H[m + 1]['items']:
-            ant = tuple(set(f[0]) - set(h))  # Association rule antecedents
+            ant = tuple(sorted(set(f[0]) - set(h)))  # Association rule antecedents
             ant_cnt = int(F[len(ant)]['count'][F[len(ant)]['items'] == ant])  # Antecedent support count
             conf = f[1] / ant_cnt  # Confidence of rule with (m + 1)-item consequents
 
