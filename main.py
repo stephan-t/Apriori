@@ -10,9 +10,8 @@ file = input("Please enter a dataset filename: ")
 T = vd.validate_file(file)
 
 # Preprocess data
-T = T.iloc[:, [1]]
-for i in range(len(T)):
-    T.iloc[:, 0][i] = tuple(T.iloc[:, 0][i].replace(" ", "").split(","))
+T['items'] = T['items'].str.replace(", ", ",").str.split(",")
+T['items'] = T['items'].apply(tuple)
 
 # Request minimum support from user
 min_sup = input("Please enter a minimum support between 0.0-1.0 or 1-" + str(len(T)) + ": ")
