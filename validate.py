@@ -1,8 +1,24 @@
+import pandas as pd
+import os
 from ast import literal_eval
 
 
-# Validate input function
-def validate_input(m, T=None):
+# Validate filename input function
+def validate_file(f):
+    dir = os.path.dirname(os.path.realpath(__file__))
+    while True:
+        try:
+            T = pd.read_csv(dir + "\\data\\" + f, sep="\n", header=None, names=['items'])
+        except FileNotFoundError:
+            f = input("Please enter a valid filename: ")
+            continue
+        else:
+            break
+    return T
+
+
+# Validate support and confidence input function
+def validate_measure(m, T=None):
     while True:
         try:
             m = literal_eval(m)
